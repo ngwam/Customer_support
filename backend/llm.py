@@ -3,16 +3,16 @@ import os
 
 from dotenv import load_dotenv
 
-from langfuse import observe
-from langfuse.openai import AzureOpenAI
-
-from langfuse_config import langfuse
 from prompts import (
-    CLASSIFICATION_SYSTEM_PROMPT,
-    RESPONSE_SYSTEM_PROMPT,
+    CLASSIFICATION_PROMPT,
+    RESPONSE_PROMPT,
 )
 
+
+
 load_dotenv()
+
+from langfuse.openai import AzureOpenAI
 
 client = AzureOpenAI(
     azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
@@ -44,20 +44,13 @@ def chat(messages, response_format=None):
     return response.choices[0].message.content
 
 
-@observe(name="classify_ticket", as_type="span")
 def classify_ticket(ticket_text):
-
-    langfuse.update_current_span(
-        metadata={
-            "stage": "classification"
-        }
-    )
 
     reply = chat(
         [
             {
                 "role": "system",
-                "content": CLASSIFICATION_SYSTEM_PROMPT,
+                "content": CLASSIFICATION_PROMPT,
             },
             {
                 "role": "user",
@@ -70,22 +63,13 @@ def classify_ticket(ticket_text):
     return json.loads(reply)
 
 
-@observe(name="draft_response", as_type="span")
 def draft_response(ticket_text, classification):
-
-    langfuse.update_current_span(
-        metadata={
-            "stage": "drafting",
-            "urgency": classification["urgency"],
-            "category": classification["category"],
-        }
-    )
 
     return chat(
         [
             {
                 "role": "system",
-                "content": RESPONSE_SYSTEM_PROMPT,
+                "content": RESPONSE_PROMPT,
             },
             {
                 "role": "user",
@@ -105,7 +89,6 @@ Category:
     )
 
 
-@observe(name="process_ticket")
 def process_ticket(ticket_text, ticket_id):
 
     classification = classify_ticket(ticket_text)
@@ -115,20 +98,10 @@ def process_ticket(ticket_text, ticket_id):
         classification,
     )
 
-    langfuse.update_current_span(
-        metadata={
-            "ticket_id": ticket_id,
-            "urgency": classification["urgency"],
-            "category": classification["category"],
-        }
-    )
-
-    trace_id = langfuse.get_current_trace_id()
-
     return {
         "urgency": classification["urgency"],
         "category": classification["category"],
         "draft_response": draft,
-        "trace_id": trace_id,
-        "trace_url": langfuse.get_trace_url(trace_id=trace_id),
+        "trace_id": None,
+        "trace_url": None,
     }

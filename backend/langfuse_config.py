@@ -1,16 +1,13 @@
-import os
+# Langfuse disabled for local development
 
-from dotenv import load_dotenv
+class DummyLangfuse:
+    def update_current_span(self, *args, **kwargs):
+        pass
 
-load_dotenv()
+    def get_current_trace_id(self):
+        return None
 
-os.environ.setdefault(
-    "LANGFUSE_HOST",
-    os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com"),
-)
+    def get_trace_url(self, trace_id=None):
+        return None
 
-from langfuse import get_client
-
-langfuse = get_client()
-
-langfuse.auth_check()
+langfuse = DummyLangfuse()
