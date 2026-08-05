@@ -46,7 +46,7 @@ Category:
 
 {category}
 
-Write a friendly first response.
+Write a friendly first response. If the urgency is high, at the end suggest contacting the manager, Alan Curbishley immediately. If the urgency is medium, give the user appropriate options of how we can help. If the urgency is low, end with a joke.
 
 Requirements:
 

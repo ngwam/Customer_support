@@ -1,4 +1,3 @@
-
 import requests
 import streamlit as st
 
@@ -48,24 +47,62 @@ if st.button("Analyze Ticket", use_container_width=True):
 
     col1, col2 = st.columns(2)
 
+    urgency_styles = {
+        "high": {"emoji": "🔴", "color": "#d32f2f"},
+        "medium": {"emoji": "🟡", "color": "#fbc02d"},
+        "low": {"emoji": "🟢", "color": "#388e3c"},
+    }
+
+    urgency = result["urgency"].lower()
+    urgency_info = urgency_styles.get(
+        urgency,
+        {"emoji": "⚪", "color": "#757575"}
+    )
+
     with col1:
-        st.metric(
-            label="Urgency",
-            value=result["urgency"].capitalize(),
+        st.markdown(
+            f"""
+            <div style="
+                padding: 10px;
+                border-radius: 10px;
+                background-color: {urgency_info['color']};
+                color: white;
+                text-align: center;
+                font-size: 20px;
+                font-weight: bold;
+            ">
+                {urgency_info['emoji']} {urgency.capitalize()}
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
+
+    category_icons = {
+        "account": "👤",
+        "billing": "💳",
+        "technical": "🛠️",
+        "security": "🔒",
+        "other": "🧩",
+    }
+
+    category = result["category"].lower()
 
     with col2:
         st.metric(
             label="Category",
-            value=result["category"].capitalize(),
+            value=f"{category_icons.get(category, '📌')} {category.capitalize()}",
         )
 
     st.divider()
+
     st.subheader("Suggested First Response")
     st.write(result["draft_response"])
+
     st.divider()
+
     st.subheader("Langfuse Trace")
     st.code(result["trace_id"])
+
     if result.get("trace_url"):
         st.link_button(
             "Open Trace in Langfuse",
